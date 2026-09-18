@@ -576,7 +576,7 @@ No paid service is required.
 ### 1. Clone the repository
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
+git clone <https://github.com/sarthak-engineer/ai-support-intelligence-platform.git>
 cd ai-support-intelligence-platform
 ```
 
