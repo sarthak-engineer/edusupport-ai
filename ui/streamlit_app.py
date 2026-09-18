@@ -20,9 +20,9 @@ st.markdown("""
     <style>
     /* General Typography & Spacing */
     .stMarkdown, .stText { font-size: 1.05rem; }
-    h1 { font-size: 2.2rem !important; font-weight: 600 !important; color: #1f2937 !important; margin-bottom: 1rem !important; }
-    h2 { font-size: 1.5rem !important; font-weight: 600 !important; color: #374151 !important; margin-top: 1.5rem !important; margin-bottom: 1rem !important; }
-    h3 { font-size: 1.25rem !important; font-weight: 600 !important; color: #4b5563 !important; }
+    h1 { font-size: 2.2rem !important; font-weight: 600 !important; margin-bottom: 1rem !important; }
+    h2 { font-size: 1.5rem !important; font-weight: 600 !important; margin-top: 1.5rem !important; margin-bottom: 1rem !important; }
+    h3 { font-size: 1.25rem !important; font-weight: 600 !important; }
     
     /* Navigation / Radio Buttons */
     div[data-testid="stSidebar"] div[role="radiogroup"] > label {
