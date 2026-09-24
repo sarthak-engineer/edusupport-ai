@@ -1035,6 +1035,14 @@ The system is intentionally kept focused on those outcomes rather than adding in
 
 ---
 
+## 31. Dataset
+
+The project includes a 500-ticket support dataset used as deterministic demo/seed data.
+
+The dataset was reused from an earlier assessment and adapted to the college student-support domain. It is used for ticket workflows, analytics, SLA evaluation, and semantic retrieval.
+
+---
+
 ## License
 
 This project is an assessment/prototype project. Add the repository-specific license here if a formal open-source license is desired.
