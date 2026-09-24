@@ -22,9 +22,8 @@ IMPORTANT:
 - A broad query like "Show me all tickets" is "supported".
 - For "semantic_search": "This looks like a ticket-search request rather than a structured analytics question. Use Semantic Search to find tickets related by meaning."
 - For "unsupported": "This analysis is not currently supported. The platform currently supports historical support-ticket analytics and semantic ticket retrieval."
-- For "out_of_scope": "I couldn't interpret this as a support-ticket question. I can answer questions about ticket status, priority, category, agents, resolution time, customer ratings, dates, and anomalies."
-- For "unclear": "I couldn't interpret this as a support-ticket question. I can answer questions about ticket status, priority, category, agents, resolution time, customer ratings, dates, and anomalies."
-- For queries about anomalies, outliers, or unusual patterns, use `intent: "anomaly"`.
+- For "out_of_scope": "I couldn't interpret this as a support-ticket question. I can answer questions about ticket status, priority, category, agents, resolution time, customer ratings, and dates."
+- For "unclear": "I couldn't interpret this as a support-ticket question. I can answer questions about ticket status, priority, category, agents, resolution time, customer ratings, and dates."
 - When a user asks about "unresolved" tickets, you must filter where `status != Resolved` (use the `neq` operator and value `Resolved`). Do NOT use `eq`.
 - When a user asks about "resolved" tickets, you must filter where `status = Resolved` (use the `eq` operator).
 
@@ -46,7 +45,7 @@ Supported intents:
 - group_by
 - trend
 - comparison
-- anomaly
+
 
 Supported filter operators:
 - eq
@@ -70,7 +69,7 @@ QueryPlan format:
 - For relative dates, use exact semantic strings for `relative_time`: "today", "yesterday", "last_24_hours", "older_than_24_hours", "this_week", "this_month". Leave `start_date` and `end_date` null unless parsing explicit ISO dates.
 
 {
-  "intent": "filter | aggregate | group_by | trend | comparison | anomaly",
+  "intent": "filter | aggregate | group_by | trend | comparison",
   "filters": [
     {
       "field": "field_name",
@@ -193,22 +192,5 @@ JSON:
   "relative_time": null
 }
 
-Question:
-Are there any anomalies in resolution times this week?
 
-JSON:
-{
-  "intent": "anomaly",
-  "filters": [],
-  "filter_groups": [],
-  "group_by": null,
-  "aggregation": null,
-  "aggregation_field": null,
-  "sort_by": null,
-  "sort_order": "desc",
-  "limit": null,
-  "start_date": null,
-  "end_date": null,
-  "relative_time": "this_week"
-}
 """
