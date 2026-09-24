@@ -33,9 +33,7 @@ class AnalyticsService:
         critical_tickets = int(
             (self.df["priority"] == "Critical").sum()
         )
-        
-        from app.anomalies.detector import AnomalyDetector
-        anomaly_count = len(AnomalyDetector(self.df).detect())
+
 
         resolution_rate = (
             round((resolved / total_tickets) * 100, 2)
@@ -49,7 +47,6 @@ class AnalyticsService:
             "open_tickets": open_tickets,
             "escalated_tickets": escalated,
             "critical_tickets": critical_tickets,
-            "anomaly_count": anomaly_count,
             "resolution_rate_percent": resolution_rate,
         }
 

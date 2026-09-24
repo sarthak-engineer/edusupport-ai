@@ -87,16 +87,7 @@ class QueryExecutor:
         if plan.group_by:
             return self._execute_grouped(df, plan)
 
-        # Anomaly query
-        if plan.intent == "anomaly":
-            from app.anomalies.detector import AnomalyDetector
-            detector = AnomalyDetector(df)
-            anomalies = detector.detect()
-            
-            return {
-                "count": len(anomalies),
-                "rows": anomalies
-            }
+
 
         # Aggregation query
         if plan.aggregation:

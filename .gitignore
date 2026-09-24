@@ -25,4 +25,5 @@ Thumbs.db
 *.log
 
 # Local generated files
-outputs/
+outputs/*.db
+*.db

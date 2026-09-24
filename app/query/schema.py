@@ -12,7 +12,7 @@ class QueryIntent(str, Enum):
     GROUP_BY = "group_by"
     TREND = "trend"
     COMPARISON = "comparison"
-    ANOMALY = "anomaly"
+
 
 
 class QueryStatus(str, Enum):

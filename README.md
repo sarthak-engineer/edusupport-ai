@@ -1,753 +1,297 @@
-# AI Support Intelligence Platform
+# EduSupport AI
+### AI-Powered Student Support & Resolution Platform
 
-An end-to-end AI-powered support analytics system that turns a customer-support CSV into a queryable, explainable intelligence platform.
+EduSupport AI is a full-stack, AI-assisted student support and ticket management platform designed for a college environment.
 
-The system combines **natural-language querying, deterministic analytics, anomaly detection, and semantic ticket retrieval** behind a Python-based REST API and Streamlit UI. It is intentionally designed as a focused technical assessment prototype: the LLM handles language understanding, while validated deterministic code performs the actual data computation.
+It provides a structured workflow for students to raise support requests, staff to triage and resolve them, and managers to monitor operational performance through SLA tracking, escalation, analytics, semantic search, and natural-language insights.
+
+The project is designed as an assessment-ready product engineering prototype with a clear separation between AI-assisted interpretation and deterministic business logic.
 
 ---
 
-## Overview
+## 1. Problem Statement
 
-Support teams often need answers to questions such as:
+Student support requests are often handled through disconnected channels, making it difficult to:
 
-- How many tickets are currently open?
-- Which agent resolved the most tickets in the latest reporting month?
-- What is the average customer rating for Technical tickets?
-- Which high-priority tickets are still unresolved and aging?
-- Are there unusually long resolution times?
-- Can similar support issues be found even when the wording is different?
+- track requests from creation to resolution
+- assign ownership to the right staff member
+- prioritize urgent issues
+- monitor SLA commitments and ageing
+- identify tickets that need escalation
+- maintain a reliable activity history
+- reuse solutions from previously resolved issues
+- provide management with operational visibility
+- extract insights from support data without manually querying datasets
 
-This platform addresses those use cases through four core capabilities:
+EduSupport AI addresses these needs through a centralized support workflow with controlled AI assistance.
 
-| Capability | Implementation |
+---
+
+## 2. Product Overview
+
+The platform supports three operational roles:
+
+| Role | Primary Responsibilities |
 |---|---|
-| CSV ingestion | Pandas-based loading and normalization |
-| Natural-language analytics | LLM → validated `QueryPlan` → deterministic Pandas execution |
-| Anomaly detection | Explainable rule-based detection + IQR statistics |
-| Semantic ticket retrieval | Local sentence-transformer embeddings + cosine similarity |
+| Student | Create tickets, view own tickets, reply, and track status/SLA |
+| Staff | Manage assigned/unassigned tickets, assign/reassign, reply, add internal notes, use AI assistance, resolve and escalate |
+| Manager | Monitor support operations, review all tickets, oversee SLA/escalation, and use analytics |
 
-The application is exposed through **FastAPI REST endpoints** and a **Streamlit UI**, while remaining Python-only and runnable locally at zero service cost when using Ollama or an available free-tier LLM provider.
-
----
-
-## Key Highlights
-
-- **Natural-language querying** without allowing the LLM to generate or execute Python, Pandas, or SQL.
-- **Structured QueryPlan** output validated with Pydantic before execution.
-- **Deterministic analytics** for reproducible numerical results.
-- Supports **AND/OR filtering**, status logic such as unresolved tickets, aggregations, grouping, sorting, and relative-date handling within the supported query plan.
-- **Dataset-relative date handling** for questions such as "older than 24 hours", using the latest timestamp in the supplied dataset as the reference point rather than the machine's current date.
-- **Explainable anomaly detection** using business rules and an IQR-based resolution-time outlier rule.
-- **Semantic search** over `issue_summary`, allowing similarity-based retrieval rather than exact keyword matching.
-- **LLM provider abstraction** with Groq and Ollama provider implementations.
-- **FastAPI REST API** with health, query, analytics, anomaly, and semantic-search endpoints.
-- **Streamlit UI** for practical evaluator walkthrough and exploration.
-- **37 automated tests passing** in the latest project verification.
-- No paid infrastructure, vector database, Docker requirement, or external database is required for the supplied 500-ticket dataset.
-
----
-
-## Architecture
-
-The core design principle is:
-
-> **LLM interprets. Deterministic code computes.**
-
-This separates language understanding from data computation and keeps numerical answers reproducible and controlled.
-
-```mermaid
-flowchart TD
-    U[User / Evaluator] --> UI[Streamlit UI]
-
-    UI --> API[FastAPI REST API]
-
-    API --> Q[NL Query Service]
-    API --> A[Analytics Service]
-    API --> AN[Anomaly Service]
-    API --> S[Semantic Search Service]
-    API --> H[Health Check]
-
-    Q --> LLM[LLM Provider\nGroq / Ollama]
-    LLM --> PLAN[Structured QueryPlan JSON]
-
-    PLAN --> VAL[Pydantic Schema + Query Validation]
-    VAL --> EXEC[Deterministic Query Executor]
-    EXEC --> DATA[Pandas DataFrame]
-
-    A --> DATA
-    AN --> DATA
-
-    S --> EMB[Sentence Transformer\nBAAI/bge-small-en-v1.5]
-    EMB --> SIM[Cosine Similarity + Top-K]
-    SIM --> DATA
-
-    EXEC --> EXP[Query Explanation]
-    EXP --> UI
-    AN --> UI
-    S --> UI
-```
-
-### Query execution flow
+### High-Level Workflow
 
 ```text
-Natural-language question
-        ↓
-LLM interprets intent
-        ↓
-Structured QueryPlan JSON
-        ↓
-Pydantic validation
-        ↓
-Semantic/query-plan validation
-        ↓
-Deterministic Pandas execution
-        ↓
-Calculated result
-        ↓
-Human-readable explanation + execution plan
+Student
+   |
+   v
+Create Support Ticket
+   |
+   v
+AI-assisted Classification
+   |
+   v
+Priority + Category + SLA
+   |
+   v
+Assignment / Ownership
+   |
+   v
+Staff Processing
+   |
+   +--------------------+
+   |                    |
+   v                    v
+Pending              Escalation
+   |                    |
+   +----------+---------+
+              |
+              v
+          Resolution
+              |
+              v
+        Closure / Tracking
+              |
+              v
+      Manager Visibility
 ```
-
-The LLM is not trusted to calculate the final answer. It produces a constrained representation of the user's intent; deterministic application code performs the actual filtering, aggregation, grouping, sorting, and counting.
 
 ---
 
-## Project Structure
+## 3. Key Features
+
+### Student Support
+- Create a support ticket
+- View own tickets
+- View ticket details
+- Reply to support staff
+- Track status and SLA
+- Secure ticket ownership checks
+
+### Staff Operations
+- View assigned queue
+- View unassigned tickets
+- Assign and reassign tickets
+- Change priority and status
+- Add replies
+- Add internal notes
+- Put tickets into pending state with a reason
+- Escalate tickets with an escalation reason
+- Resolve tickets with resolution notes
+- Use AI-assisted classification
+- Generate AI response drafts
+- Search for similar historical tickets
+
+### Manager Operations
+- Support operations dashboard
+- Total/open/unassigned/resolved visibility
+- SLA at-risk and SLA-breached visibility
+- Escalation visibility
+- Category and priority analytics
+- All-ticket search and filtering
+- Staff workload visibility
+- Natural-language operational analytics
+
+---
+
+## 4. Ticket Lifecycle
 
 ```text
-C:.
-|   .env
-|   .env.example
-|   .gitignore
-|   conftest.py
-|   README.md
-|   requirements.txt
-|   run.py
-|
-+---app
-|   |   config.py
-|   |   main.py
-|   |   __init__.py
-|   |
-|   +---analytics
-|   |       aggregations.py
-|   |       filters.py
-|   |       service.py
-|   |       trends.py
-|   |       __init__.py
-|   |
-|   +---anomalies
-|   |       detector.py
-|   |       models.py
-|   |       rules.py
-|   |       __init__.py
-|   |
-|   +---api
-|   |       routes_analytics.py
-|   |       routes_anomalies.py
-|   |       routes_health.py
-|   |       routes_query.py
-|   |       routes_search.py
-|   |       __init__.py
-|   |
-|   +---data
-|   |       loader.py
-|   |       repository.py
-|   |       __init__.py
-|   |
-|   +---llm
-|   |       base.py
-|   |       groq_provider.py
-|   |       ollama_provider.py
-|   |       prompts.py
-|   |       __init__.py
-|   |
-|   +---query
-|   |       executor.py
-|   |       explainer.py
-|   |       planner.py
-|   |       schema.py
-|   |       validator.py
-|   |       __init__.py
-|   |
-|   \---retrieval
-|           embedder.py
-|           models.py
-|           service.py
-|           __init__.py
-|
-+---data
-|       support_tickets.csv
-|
-+---tests
-|       test_analytics.py
-|       test_anomalies.py
-|       test_data_loader.py
-|       test_evaluation_queries.py
-|       test_query_executor.py
-|       test_retrieval.py
-|
-\---ui
-        streamlit_app.py
+NEW
+ |
+ v
+ASSIGNED
+ |
+ v
+IN_PROGRESS
+ |
+ +----------------------+
+ |                      |
+ v                      v
+PENDING              ESCALATED
+ |                      |
+ |                      |
+ +----------+-----------+
+            |
+            v
+        IN_PROGRESS
+            |
+            v
+        RESOLVED
+            |
+            v
+          CLOSED
 ```
 
-### Main responsibilities
+### Pending Workflow
 
-| Module | Responsibility |
+A ticket may be placed in `PENDING` when work cannot continue immediately.
+
+The application records a pending reason such as:
+
+- Waiting for Student
+- Waiting for Documents
+- Waiting for Department
+- Waiting for External System
+
+The reason is added to the ticket activity history.
+
+### Resolution Tracking
+
+When a ticket is resolved, the system records:
+
+- resolution timestamp
+- resolving staff member
+- resolution notes
+- historical SLA outcome
+
+---
+
+## 5. SLA Management
+
+SLA is handled using deterministic application logic rather than an LLM.
+
+### Default SLA Targets
+
+| Priority | SLA Target |
+|---|---:|
+| Critical | 4 hours |
+| High | 8 hours |
+| Medium | 24 hours |
+| Low | 48 hours |
+
+### Active Ticket States
+
+```text
+SLA consumption
+      |
+      +---- < 80% ---------> NORMAL
+      |
+      +---- 80% to <100% --> AT_RISK
+      |
+      +---- >= 100% -------> BREACHED
+```
+
+For active tickets, the UI can show remaining or overdue time.
+
+For resolved or closed tickets, the SLA timer stops and the application shows the historical result:
+
+- `SLA MET`
+- `SLA BREACHED`
+
+This prevents resolved tickets from becoming newly breached after they have already been completed.
+
+---
+
+## 6. Activity History
+
+Important ticket actions are recorded as an immutable activity timeline.
+
+Typical events include:
+
+- Ticket created
+- Assigned
+- Reassigned
+- Status changed
+- Priority changed
+- Reply added
+- Internal note added
+- Pending reason recorded
+- Escalated
+- Resolved
+- Closed
+- Reopened, where applicable
+
+Activity is scoped by `ticket_id`, ensuring that one ticket's history is not mixed with another ticket's events.
+
+---
+
+## 7. AI Architecture
+
+EduSupport AI intentionally keeps AI responsibilities controlled and auditable.
+
+### AI Capability Map
+
+| Capability | Purpose |
 |---|---|
-| `app/data` | Load, normalize, cache, and provide access to support-ticket data |
-| `app/analytics` | Filtering, aggregations, grouping, statistics, and trend-related operations |
-| `app/llm` | Provider abstraction and LLM integrations |
-| `app/query` | Query planning, schema validation, deterministic execution, and explanations |
-| `app/anomalies` | Explainable anomaly rules, detection, and anomaly models |
-| `app/retrieval` | Embedding generation, similarity search, and top-K ticket retrieval |
-| `app/api` | FastAPI routes |
-| `ui` | Streamlit evaluation and user interface |
-| `tests` | Unit, regression, evaluation, and retrieval coverage |
-| `run.py` | Single-command application startup |
+| Ticket Classification | Suggest category, priority, and intent |
+| AI Response Assistant | Generate a draft response for staff review |
+| Similar Ticket Search | Retrieve semantically similar historical tickets |
+| Natural Language Analytics | Convert business questions into validated structured query plans |
 
 ---
 
-## Dataset
+## 8. Natural Language Analytics Architecture
 
-The supplied dataset is:
-
-`data/support_tickets.csv`
-
-### Dataset statistics
-
-| Metric | Value |
-|---|---:|
-| Rows | **500** |
-| Columns | **10** |
-| Unique agents | **12** |
-| Tickets with customer ratings | **327** |
-| Earliest `created_at` | **2024-01-01 08:54** |
-| Latest `created_at` | **2024-03-30 18:06** |
-
-### Status distribution
-
-| Status | Tickets |
-|---|---:|
-| Resolved | **327** |
-| Open | **111** |
-| Escalated | **62** |
-
-### Priority distribution
-
-| Priority | Tickets |
-|---|---:|
-| Medium | **169** |
-| Low | **142** |
-| High | **134** |
-| Critical | **55** |
-
-### Category distribution
-
-| Category | Tickets |
-|---|---:|
-| General | **189** |
-| Billing | **159** |
-| Technical | **152** |
-
-### Dataset schema
-
-| Column | Type | Description |
-|---|---|---|
-| `ticket_id` | String | Unique ticket identifier |
-| `created_at` | Datetime | Ticket creation timestamp |
-| `category` | String | Billing, Technical, or General |
-| `priority` | String | Low, Medium, High, or Critical |
-| `status` | String | Open, Resolved, or Escalated |
-| `response_time_hrs` | Float | Hours from ticket creation to first agent response |
-| `resolution_time_hrs` | Float | Hours from ticket creation to resolution; null for unresolved tickets |
-| `agent_id` | String | Assigned support agent identifier |
-| `customer_rating` | Integer | Post-resolution rating from 1 to 5; null for unresolved tickets |
-| `issue_summary` | String | Short description of the reported issue |
-
-Null values in unresolved-ticket fields are preserved rather than being converted to artificial zero values.
-
----
-
-## Features
-
-### 1. Natural-Language Querying
-
-Users can ask business questions in normal language instead of writing Pandas or SQL.
-
-Examples:
+The platform does not let the LLM directly execute arbitrary Python or SQL.
 
 ```text
-How many tickets are currently open?
-
-Which agent resolved the most tickets this month?
-
-What is the average customer rating for Technical category tickets?
-
-How many unresolved High or Critical tickets are older than 24 hours?
+User Question
+      |
+      v
+LLM Interpretation
+      |
+      v
+Structured QueryPlan
+      |
+      v
+Schema / Query Validation
+      |
+      v
+Deterministic Executor
+      |
+      v
+Pandas / Application Logic
+      |
+      v
+Readable Result
+      |
+      +----> Optional Execution Plan Details
 ```
 
-The LLM converts the question into a controlled `QueryPlan`. The plan is then validated and executed deterministically.
-
-### 2. Structured QueryPlan
-
-A simplified example:
-
-```json
-{
-  "intent": "aggregate",
-  "filters": [
-    {
-      "field": "status",
-      "operator": "neq",
-      "value": "Resolved"
-    }
-  ],
-  "filter_groups": [
-    {
-      "logic": "OR",
-      "conditions": [
-        {
-          "field": "priority",
-          "operator": "eq",
-          "value": "High"
-        },
-        {
-          "field": "priority",
-          "operator": "eq",
-          "value": "Critical"
-        }
-      ]
-    }
-  ],
-  "aggregation": "count"
-}
-```
-
-This design prevents common failure modes such as:
-
-- LLM-generated executable code
-- inconsistent calculations
-- invalid fields or operators
-- accidental execution of arbitrary instructions
-
-### 3. Explainable Query Results
-
-The UI exposes more than a final number. For supported queries it can show:
-
-- calculated result
-- how the query was interpreted
-- data scope
-- query details
-- structured execution plan
-- human-readable calculation explanation
-
-This makes the system easier to inspect during an architecture walkthrough.
-
-### 4. Anomaly Detection
-
-The anomaly engine uses deterministic and explainable rules.
-
-#### Rule A — Stale high-priority tickets
-
-A ticket is flagged when:
+### Example Questions
 
 ```text
-status != Resolved
-AND
-priority ∈ {High, Critical}
-AND
-ticket age > 24 hours
+How many total tickets are there?
+
+How many unresolved high priority fee tickets are there?
+
+Which category has the most tickets?
+
+Which staff member has the highest open-ticket workload?
+
+What is the average resolution time by category?
+
+How many escalated tickets are there?
+
+Show unresolved fee tickets older than 24 hours.
+
+How many active SLA-breached tickets are there?
 ```
 
-For relative time questions, ticket age is calculated against the latest `created_at` timestamp in the supplied dataset.
+The UI presents a readable answer first and keeps technical execution-plan details secondary.
 
-#### Rule B — Resolution-time outliers
+### Unsupported Queries
 
-Resolution-time outliers are identified using the upper IQR boundary:
-
-```text
-IQR = Q3 - Q1
-Upper Bound = Q3 + 1.5 × IQR
-```
-
-For the supplied dataset:
-
-- Q1 = **6.15 hours**
-- Q3 = **22.95 hours**
-- Upper bound = **48.15 hours**
-- Resolution-time values above this threshold are treated as statistical outliers.
-
-#### Rule C — Low customer rating with slow resolution
-
-Tickets are flagged when:
-
-```text
-customer_rating <= 2
-AND
-resolution_time_hrs > median resolution time
-```
-
-For the supplied dataset, the median resolution time is **12.0 hours**.
-
-Each anomaly includes a ticket identifier, anomaly type, severity, reason, and relevant value where applicable.
-
-### 5. Semantic Ticket Search
-
-Semantic search retrieves support tickets by meaning rather than requiring exact keywords.
-
-Example searches:
-
-```text
-payment problems
-
-customers being charged incorrectly
-
-login failures
-
-API timeout issues
-```
-
-Implementation:
-
-```text
-issue_summary
-     ↓
-Sentence Transformer
-BAAI/bge-small-en-v1.5
-     ↓
-384-dimensional embeddings
-     ↓
-Cosine similarity
-     ↓
-Top-K relevant tickets
-```
-
-The retrieval layer is kept separate from structured analytics so it can be replaced by a vector database later without changing the overall application design.
-
-### 6. REST API
-
-FastAPI provides the backend interface for health checks, analytics, NL queries, anomalies, and semantic search.
-
-### 7. Streamlit UI
-
-The Streamlit application provides a minimal, practical UI for:
-
-- Overview
-- AI Natural Language Query
-- Anomalies
-- Semantic Search
-
-The UI is intentionally focused on demonstrating the system rather than adding unnecessary dashboard complexity.
-
----
-
-## API Endpoints
-
-| Method | Endpoint | Purpose |
-|---|---|---|
-| `GET` | `/health` | Service health check |
-| `POST` | `/query` | Process a natural-language analytics query |
-| `GET` | `/anomalies` | Detect and return anomalies |
-| `GET` | `/analytics/summary` | Overall support-ticket summary |
-| `GET` | `/analytics/agents` | Agent-level analytics |
-| `GET` | `/analytics/categories` | Category-level analytics |
-| `GET` | `/analytics/priorities` | Priority-level analytics |
-| `GET` | `/search/semantic` | Semantic search over ticket summaries |
-
-Interactive API documentation is available at:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-FastAPI also exposes the OpenAPI specification automatically.
-
----
-
-## Technology Stack
-
-### Backend
-
-- **Python**
-- **FastAPI**
-- **Pydantic**
-- **Uvicorn**
-- **Pandas**
-- **NumPy**
-
-### LLM
-
-- **Groq** provider
-- **Ollama** provider for locally runnable models
-- Default Groq model used by the project: **`llama-3.3-70b-versatile`**
-
-### Retrieval
-
-- **Sentence Transformers**
-- **BAAI/bge-small-en-v1.5**
-- **Cosine similarity**
-- In-memory cached embeddings
-
-### UI
-
-- **Streamlit**
-
-### Testing
-
-- **Pytest**
-
-No Node.js, React, external database, vector database, or paid API is required for the supplied assessment implementation.
-
----
-
-## Why This Architecture?
-
-The architecture is intentionally simple, modular, and easy to reason about.
-
-### Why use an LLM?
-
-Natural-language interpretation is the main AI requirement. The LLM is well suited to converting a business question into a structured representation of intent, filters, grouping, aggregation, and date constraints.
-
-### Why not let the LLM generate Python or SQL?
-
-Allowing an LLM to generate executable code increases security, validation, and reproducibility concerns.
-
-Instead:
-
-```text
-LLM output
-    ↓
-Typed QueryPlan
-    ↓
-Validation
-    ↓
-Deterministic executor
-```
-
-This makes the computation predictable and keeps the boundary between AI interpretation and data execution explicit.
-
-### Why Pandas?
-
-The supplied dataset contains only **500 rows**, so Pandas provides:
-
-- simple implementation
-- transparent transformations
-- fast local execution
-- easy testing
-- low infrastructure overhead
-
-For a large production dataset, the same query-planning layer could target SQL or a warehouse-backed analytics service instead.
-
-### Why no vector database?
-
-The assessment dataset contains only **500 tickets**. For this scale, in-memory embeddings and NumPy similarity search are sufficient and keep the deployment simple.
-
-For larger datasets, the retrieval service can be migrated to a vector store such as Qdrant, pgvector, or another managed/vector-backed solution.
-
-### Why Streamlit?
-
-The technical constraint is **Python only**, and the assessment asks for a minimal UI. Streamlit provides a practical Python-native interface without introducing a separate frontend stack.
-
-### Why provider abstraction?
-
-`app/llm/base.py` separates the application from a specific model provider. This allows the project to use a cloud free-tier provider such as Groq or a local Ollama model without rewriting the query pipeline.
-
----
-
-## Setup
-
-### Requirements
-
-Recommended environment:
-
-- Python **3.10+**
-- pip
-- Internet access for installing Python packages and, if not already cached, the embedding model
-- Either:
-  - a Groq API key, or
-  - a locally running Ollama model
-
-No paid service is required.
-
----
-
-## Installation
-
-### 1. Clone the repository
-
-```bash
-git clone <https://github.com/sarthak-engineer/ai-support-intelligence-platform.git>
-cd ai-support-intelligence-platform
-```
-
-### 2. Create a virtual environment
-
-#### Windows
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-```
-
-#### macOS / Linux
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Configure environment variables
-
-Copy the example environment file:
-
-```bash
-copy .env.example .env
-```
-
-For macOS/Linux:
-
-```bash
-cp .env.example .env
-```
-
-When using Groq, set the API key in `.env` according to the variables documented in `.env.example`.
-
-Do not commit real API keys or secrets to Git.
-
-When using Ollama, ensure the Ollama service is running locally and that the configured local model is available.
-
----
-
-## Start the System
-
-The complete application starts with a **single command**:
-
-```bash
-python run.py
-```
-
-Expected local services:
-
-### Streamlit UI
-
-```text
-http://localhost:8501
-```
-
-### FastAPI
-
-```text
-http://127.0.0.1:8000
-```
-
-### Swagger / OpenAPI
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-The single startup script is intended to satisfy the assessment requirement that the evaluator can launch the system with one command.
-
----
-
-## Example Queries
-
-The following examples are based on the supplied 500-row dataset.
-
-### Query 1
-
-```text
-How many tickets are currently open?
-```
-
-Expected result:
-
-```text
-111 tickets
-```
-
-### Query 2
-
-```text
-Which agent resolved the most tickets this month?
-```
-
-Using the **latest month represented in the dataset (March 2024)** as the reporting month:
-
-```text
-AGT-01 — 16 resolved tickets
-```
-
-### Query 3
-
-```text
-What is the average customer rating for Technical category tickets?
-```
-
-Expected result:
-
-```text
-3.74 / 5
-```
-
-### Query 4
-
-```text
-Show me all Critical tickets not resolved within 12 hours.
-```
-
-Expected behavior:
-
-```text
-Returns the matching Critical tickets as a ticket-level result set,
-rather than fabricating a summary that is not supported by the data.
-```
-
-### Query 5
-
-```text
-Are there any anomalies in resolution times this week?
-```
-
-Expected behavior:
-
-```text
-Returns anomaly records identified by the deterministic anomaly engine,
-including the anomaly type, severity, reason, and relevant value.
-```
-
-### Query 6
-
-```text
-How many unresolved High or Critical tickets are older than 24 hours?
-```
-
-Expected behavior:
-
-```text
-The planner represents:
-- unresolved status logic
-- High OR Critical priority logic
-- a dataset-relative 24-hour age condition
-
-The final result is then calculated deterministically by the query executor.
-```
-
----
-
-## Handling Ambiguous or Unsupported Questions
-
-The system is intentionally conservative.
-
-For supported questions, the planner creates a valid QueryPlan and the executor produces the result.
-
-For unsupported or out-of-domain questions, the application should return a clear fallback instead of inventing an answer.
+Questions outside the support-data domain are rejected with a clear scope response rather than fabricated information.
 
 Example:
 
@@ -758,335 +302,739 @@ What is the weather in Bengaluru?
 Expected behavior:
 
 ```text
-The system should explain that the requested information is outside
-the available support-ticket dataset/domain.
+Unsupported query / outside the application's analytics scope.
 ```
-
-This behavior is preferred over hallucinating a data result.
 
 ---
 
-## Relative Date Handling
+## 9. Similar Ticket Search
 
-Relative date questions require special care because the supplied dataset is historical.
+Semantic retrieval uses embeddings to identify historical tickets that are similar in meaning, not only by exact keyword overlap.
 
-The latest ticket timestamp is:
-
-```text
-2024-03-30 18:06
-```
-
-Therefore, relative conditions such as:
+### Example Query
 
 ```text
-older than 24 hours
-this week
-this month
+I paid my semester fee but the payment is still showing as pending.
 ```
 
-are interpreted against the **dataset's available time range/reference timestamp**, where supported, rather than against the evaluator's real-world date in 2026.
+The system searches historical support tickets and surfaces relevant similar cases.
 
-This keeps queries grounded in the data actually available to the system.
+Where no sufficiently relevant result is found, the application returns:
+
+```text
+No similar resolved tickets found.
+```
+
+This feature is intended to help staff reuse previously resolved solutions.
 
 ---
 
-## Anomaly Detection Design
+## 10. AI Response Assistant
 
-The anomaly engine is intentionally explainable rather than relying on an opaque model.
+Staff can generate a response draft from the context of the current ticket.
 
 ```text
-Support Tickets
-      ↓
-Deterministic Rules
-      ├── Stale High/Critical + Unresolved > 24h
-      ├── Resolution-time IQR outliers
-      └── Low rating + slow resolution
-      ↓
-Anomaly Model
-      ↓
-Ticket ID + Type + Severity + Reason + Value
+Ticket Context
+      |
+      v
+LLM
+      |
+      v
+Suggested Response
+      |
+      v
+Staff Review / Edit
+      |
+      v
+Manual Send
 ```
 
-This makes every anomaly traceable to a specific rule.
+The generated response is a draft only. Staff remain responsible for reviewing and sending the final message.
 
 ---
 
-## Testing
+## 11. Role and Access Model
 
-The project includes automated tests covering:
+EduSupport AI currently uses a role-selection mechanism in the Streamlit interface to simulate the active user for the assessment environment.
 
-- data loading and normalization
-- analytics behavior
-- anomaly detection
-- deterministic query execution
-- assessment/evaluation queries
+### Student
+
+Students can:
+
+- create tickets
+- view only their own tickets
+- reply to their own tickets
+- track their ticket status and SLA
+
+Students cannot access another student's ticket or staff-only management actions.
+
+### Staff
+
+Staff can:
+
+- view their assigned queue
+- claim/assign tickets where permitted
+- reassign tickets where permitted
+- update status and priority
+- reply to students
+- add internal notes
+- use AI assistance
+- resolve tickets
+- escalate tickets
+
+### Manager
+
+Managers can:
+
+- view overall support operations
+- inspect all tickets
+- monitor assignment and escalation
+- review SLA/ageing metrics
+- use natural-language analytics
+
+---
+
+## 12. Security and Authorization Boundary
+
+Backend authorization checks are used to enforce student ticket ownership and role-specific actions.
+
+For example:
+
+```text
+Student STU1234
+      |
+      +-----> Own Ticket ------> ALLOWED
+      |
+      +-----> Another Student --> DENIED
+```
+
+The current assessment build does not implement a production authentication provider such as OAuth or JWT. The active identity is simulated through the Streamlit role/user controls.
+
+This limitation is documented rather than hidden.
+
+---
+
+## 13. System Architecture
+
+```mermaid
+flowchart TD
+    A[Student / Staff / Manager] --> B[Streamlit UI]
+    B --> C[FastAPI Application]
+
+    C --> D[Ticket API]
+    C --> E[Analytics API]
+    C --> F[Query API]
+    C --> G[Search API]
+    C --> H[Health API]
+
+    D --> I[Ticket Service]
+    I --> J[SLA Service]
+    I --> K[SQLite Repository]
+
+    E --> L[Analytics Services]
+    F --> M[Query Planner]
+    M --> N[Query Validator]
+    N --> O[Query Executor]
+
+    C --> P[AI Service]
+
+    P --> Q[Groq Provider]
+    P --> R[Ollama Provider]
+
+    G --> S[Retrieval Service]
+    S --> T[Embedding Model]
+
+    O --> K
+    L --> K
+    S --> K
+```
+
+### Architectural Principle
+
+The application separates:
+
+- UI concerns
+- API/controller concerns
+- business services
+- deterministic SLA/workflow logic
+- analytics
+- query planning/validation/execution
+- LLM integration
 - semantic retrieval
+- persistence
 
-Run the full test suite with:
+This keeps AI behavior isolated from core business rules.
+
+---
+
+## 14. Data Flow
+
+```text
+                   +----------------------+
+                   |   Streamlit UI       |
+                   +----------+-----------+
+                              |
+                              v
+                   +----------------------+
+                   |   FastAPI API Layer  |
+                   +----------+-----------+
+                              |
+              +---------------+----------------+
+              |               |                |
+              v               v                v
+        Ticket Service   Analytics        AI / Query
+              |               |                |
+              v               v                v
+        SLA Service      Aggregations      LLM / Retrieval
+              |                              |
+              +---------------+--------------+
+                              |
+                              v
+                   +----------------------+
+                   |   SQLite Database    |
+                   +----------------------+
+```
+
+---
+
+## 15. Core Data Model
+
+The current application centers on ticket-oriented support records.
+
+A simplified logical model is:
+
+```text
+Student
+   |
+   +----< Ticket >---- Staff
+            |
+            +----< Activity
+            |
+            +----< Messages / Replies
+```
+
+### Ticket
+
+Representative ticket attributes include:
+
+- ticket ID
+- student ID
+- student name
+- subject
+- description / issue summary
+- category
+- priority
+- status
+- assigned staff
+- created timestamp
+- updated timestamp
+- SLA state
+- SLA deadline / timing information
+- resolution information
+- escalation information
+- pending information where applicable
+
+### Activity
+
+Representative activity attributes include:
+
+- ticket ID
+- actor
+- actor role
+- action/event
+- timestamp
+- contextual reason/details
+
+The exact implementation remains in the application models/services and should be treated as the source of truth.
+
+---
+
+## 16. Technology Stack
+
+### Backend
+- Python
+- FastAPI
+- Pydantic-based validation
+- SQLite
+
+### Frontend
+- Streamlit
+
+### AI / LLM
+- Groq
+- Ollama
+- Controlled prompt-based structured interpretation
+- Sentence Transformers for semantic retrieval
+
+### Data / Analytics
+- Pandas
+- Deterministic query execution
+- Aggregation and filtering services
+
+### Testing
+- Pytest
+
+### Development
+- Git
+- GitHub
+- Python virtual environment
+
+---
+
+## 17. Repository Structure
+
+```text
+C:\Users\sarth\Desktop\ai-support-intelligence-platform\
+│
+├── .env
+├── .gitignore
+├── README.md
+├── AI_USAGE_REPORT.md
+├── requirements.txt
+├── run.py
+│
+├── app/
+│   ├── config.py
+│   ├── main.py
+│   │
+│   ├── analytics/
+│   │   ├── aggregations.py
+│   │   ├── filters.py
+│   │   ├── service.py
+│   │   └── trends.py
+│   │
+│   ├── api/
+│   │   ├── routes_analytics.py
+│   │   ├── routes_health.py
+│   │   ├── routes_query.py
+│   │   ├── routes_search.py
+│   │   └── routes_tickets.py
+│   │
+│   ├── data/
+│   │   ├── db.py
+│   │   ├── loader.py
+│   │   └── repository.py
+│   │
+│   ├── llm/
+│   │   ├── base.py
+│   │   ├── groq_provider.py
+│   │   ├── ollama_provider.py
+│   │   └── prompts.py
+│   │
+│   ├── query/
+│   │   ├── executor.py
+│   │   ├── explainer.py
+│   │   ├── planner.py
+│   │   ├── schema.py
+│   │   └── validator.py
+│   │
+│   ├── retrieval/
+│   │   ├── embedder.py
+│   │   ├── models.py
+│   │   └── service.py
+│   │
+│   └── services/
+│       ├── ai_service.py
+│       ├── sla_service.py
+│       └── ticket_service.py
+│
+├── data/
+│   ├── edusupport.db
+│   └── support_tickets.csv
+│
+├── screenshots/
+│
+├── scripts/
+│   └── seed_db.py
+│
+├── tests/
+│   ├── test_analytics.py
+│   ├── test_data_loader.py
+│   ├── test_evaluation_queries.py
+│   ├── test_query_executor.py
+│   ├── test_retrieval.py
+│   └── test_ticket_workflow.py
+│
+└── ui/
+    └── streamlit_app.py
+```
+
+---
+
+## 18. Local Setup
+
+### 1. Clone the repository
 
 ```bash
-python -m pytest -q
+git clone <https://github.com/sarthak-engineer/edusupport-ai.git>
+cd edusupport-ai
 ```
 
-Latest verification:
+### 2. Create and activate a virtual environment
 
-```text
-37 passed
+Windows:
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
 ```
 
-The evaluation-query tests include important edge cases such as:
-
-- unresolved status handling
-- `High OR Critical` priority logic
-- relative time conditions
-- deterministic result execution
-- unsupported/out-of-domain query handling
-
----
-
-## Error Handling and Validation
-
-Several validation layers are used:
-
-```text
-User Question
-     ↓
-LLM Provider
-     ↓
-JSON QueryPlan
-     ↓
-Pydantic Validation
-     ↓
-Allowed Fields / Operators / Aggregations
-     ↓
-Deterministic Execution
-     ↓
-Result or Controlled Fallback
-```
-
-The query validator prevents unsupported fields and operations from reaching the executor.
-
-The application also avoids exposing arbitrary generated code from the LLM.
-
----
-
-## Data and Security Considerations
-
-- Real API credentials belong in `.env`.
-- `.env` is excluded through `.gitignore`.
-- `.env.example` contains safe placeholder values only.
-- The LLM is not permitted to generate executable Python/Pandas/SQL for the query pipeline.
-- Retrieved semantic-search results expose ticket metadata and similarity scores, not raw embedding vectors.
-- The current assessment prototype is designed for local evaluation and does not attempt to implement a full production identity, authorization, rate-limiting, or audit platform.
-
----
-
-## Performance and Caching
-
-For the provided dataset size, the project favors low infrastructure overhead.
-
-The implementation uses caching where appropriate for:
-
-- loaded ticket data
-- embedding model initialization
-- generated ticket embeddings
-
-This avoids repeating expensive setup work during repeated queries or searches.
-
----
-
-## Known Limitations
-
-The project is intentionally scoped to a focused assessment prototype.
-
-1. **Bounded QueryPlan**
-   - The natural-language query engine supports a controlled set of intents, filters, aggregations, grouping, sorting, and date operations.
-   - Highly complex multi-stage analytical questions may return a controlled unsupported-query response.
-
-2. **In-memory analytics**
-   - Pandas is appropriate for the supplied 500-row dataset.
-   - Large-scale deployments should move analytical workloads to a database, SQL engine, or warehouse.
-
-3. **In-memory semantic retrieval**
-   - Embeddings are stored and searched locally.
-   - At larger scale, a vector database or vector-enabled database would be more appropriate.
-
-4. **Provider dependency for LLM queries**
-   - Natural-language planning requires an available Groq or Ollama provider.
-   - Deterministic analytics and anomaly logic remain application-side computations.
-
-These are deliberate scope decisions rather than hidden behavior.
-
----
-
-## Scaling the System
-
-A production-scale version could evolve without replacing the core architecture.
-
-```text
-Current Assessment
-------------------
-CSV
- ↓
-Pandas
- ↓
-In-memory embeddings
-
-
-Production Evolution
---------------------
-Data Warehouse / PostgreSQL
-        ↓
-Analytics Service
-        ↓
-Validated QueryPlan
-
-Object Storage
-        ↓
-Embedding Pipeline
-        ↓
-Vector Database
-
-LLM Gateway
-        ↓
-Provider Routing / Retry / Observability
-
-API Gateway
-        ↓
-FastAPI Services
-        ↓
-Web Application
-```
-
-Possible next-stage improvements include:
-
-- PostgreSQL or warehouse-backed analytics
-- Qdrant/pgvector for large-scale semantic retrieval
-- asynchronous embedding generation
-- background ingestion jobs
-- pagination and filtering at the API layer
-- authentication and role-based access
-- rate limiting
-- structured observability and tracing
-- LLM response monitoring and evaluation
-- query/result caching
-- model routing and fallback providers
-- larger-scale data ingestion pipelines
-
-The current modular separation is intended to make these changes incremental rather than requiring a full rewrite.
-
----
-
-## Assessment Alignment
-
-The implementation directly maps to the assessment requirements:
-
-| Assessment Requirement | Implementation |
-|---|---|
-| Ingest CSV and make it queryable | Pandas loader + repository |
-| Natural-language questions | LLM planner + structured QueryPlan |
-| LLM required for NL understanding | Groq / Ollama provider layer |
-| Detect anomalies | Rule-based + IQR anomaly detector |
-| REST API | FastAPI |
-| Minimal UI | Streamlit |
-| Python only | Yes |
-| Zero-cost execution | Groq free tier or local Ollama |
-| Single-command startup | `python run.py` |
-| README documentation | This document |
-| Test coverage | 37 passing tests in latest verification |
-
----
-
-## Design Trade-offs
-
-### Accuracy vs. flexibility
-
-Instead of asking the LLM to directly compute results, the system restricts the model to query interpretation. This reduces flexibility for very complex questions but improves predictability and reproducibility.
-
-### Simplicity vs. scale
-
-The assessment dataset contains only 500 rows, so Pandas and in-memory retrieval keep the solution easy to run and inspect. Production-scale infrastructure would be introduced only when the workload justifies it.
-
-### Infrastructure vs. delivery
-
-The project deliberately avoids unnecessary services such as a vector database, separate frontend stack, Docker cluster, or external database for the assessment dataset. This keeps the system portable and aligned with the Python-only constraint.
-
----
-
-## Development Principles
-
-The project follows several core engineering principles:
-
-- **Deterministic computation**
-- **Explicit validation**
-- **Modular service boundaries**
-- **Provider abstraction**
-- **Explainability**
-- **Controlled scope**
-- **Fail-safe behavior for unsupported queries**
-- **Tests for evaluation-critical edge cases**
-
-The goal is not simply to produce a working demo, but to make the reasoning and boundaries of the AI system easy to inspect.
-
----
-
-## Quick Start
-
-For an evaluator who already has Python configured:
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
+```
+
+### 4. Configure environment variables
+
+Create a local `.env` file based on the variables required by the project.
+
+Example:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+```
+
+Never commit real API keys or other secrets.
+
+### 5. Reset to the clean demo state
+
+```bash
+python scripts/seed_db.py
+```
+
+The seed script restores the database to the clean college-support demo dataset used by the project.
+
+### 6. Start the application
+
+```bash
 python run.py
 ```
 
-Then open:
+The application starts the FastAPI backend and Streamlit UI.
+
+Default local endpoints used by the project:
 
 ```text
-http://localhost:8501
+Backend:  http://localhost:8000
+Frontend: http://localhost:8501
 ```
 
-API documentation:
+FastAPI API documentation is available through the standard OpenAPI interface when the backend is running:
 
 ```text
-http://127.0.0.1:8000/docs
+http://localhost:8000/docs
 ```
 
-Run tests:
+---
+
+## 19. Testing
+
+The final project test suite covers the core application behavior.
+
+Run:
 
 ```bash
-python -m pytest -q
+.venv\Scripts\pytest tests\
 ```
 
----
-
-## Final Verification Checklist
-
-Before submission, verify:
+The final verification reported:
 
 ```text
-[ ] requirements.txt installs successfully
-[ ] .env contains only local secrets and is gitignored
-[ ] .env.example contains placeholders only
-[ ] python run.py starts the complete system
-[ ] Streamlit UI opens on port 8501
-[ ] FastAPI opens on port 8000
-[ ] /docs is accessible
-[ ] Natural-language queries return QueryPlan + deterministic results
-[ ] Unresolved logic works correctly
-[ ] AND/OR filters work correctly
-[ ] Relative-date queries use the dataset time reference
-[ ] Anomaly detection returns explainable results
-[ ] Semantic search returns relevant tickets
-[ ] Unsupported questions fail gracefully
-[ ] python -m pytest -q passes
+37 passed
+2 warnings
+```
+
+The warnings are non-critical deprecation warnings reported by the underlying HTTP test stack.
+
+The test suite covers areas including:
+
+- analytics
+- data loading
+- query evaluation
+- deterministic query execution
+- semantic retrieval
+- ticket workflow
+- authorization/student isolation
+
+---
+
+## 20. Validation and Edge Cases
+
+The application explicitly handles edge cases such as:
+
+- empty or too-short ticket subjects
+- empty or too-short descriptions
+- unauthorized access to another student's ticket
+- missing assignment
+- status changes
+- pending reasons
+- resolution notes
+- escalation reasons
+- SLA at-risk state
+- SLA breach state
+- historical SLA outcome after resolution
+- unsupported natural-language analytics queries
+- AI/API failures
+- no similar-ticket matches
+
+The goal is graceful handling rather than silently producing incorrect data.
+
+---
+
+## 21. Demo Scenarios
+
+### Scenario A — Student
+
+1. Select `Student`
+2. Confirm the active student identity
+3. Open `Create Ticket`
+4. Create:
+
+```text
+Subject:
+Semester fee payment still pending
+
+Description:
+I completed the semester fee payment, but my student portal still shows the payment as pending.
+```
+
+5. Confirm the ticket appears in `My Tickets`
+6. Open the ticket
+7. Verify student ownership, status and SLA
+
+### Scenario B — Staff
+
+1. Switch to `Staff`
+2. Find the ticket
+3. Assign/claim it
+4. Run AI-assisted classification where available
+5. Generate an AI response draft
+6. Review/edit the response
+7. Add an internal note if required
+8. Update status
+9. Escalate, put pending, or resolve depending on the scenario
+
+### Scenario C — Manager
+
+1. Switch to `Manager`
+2. Open the dashboard
+3. Review ticket/SLA/escalation metrics
+4. Open `All Tickets`
+5. Filter by ticket/student/category/status
+6. Open a ticket
+7. Run Natural Language Analytics
+
+---
+
+## 22. Example NL Analytics Questions
+
+These queries are useful for demonstrating different parts of the query engine:
+
+```text
+How many total tickets are there?
+
+How many unresolved high priority fee tickets are there?
+
+Which category has the most tickets?
+
+Which staff member has the highest open-ticket workload?
+
+What is the average resolution time by category?
+
+How many escalated tickets are there?
+
+Show unresolved fee tickets older than 24 hours.
+
+How many active SLA-breached tickets are there?
 ```
 
 ---
 
-## Conclusion
+## 23. Screenshots
 
-The **AI Support Intelligence Platform** demonstrates an end-to-end approach to building an AI-assisted support analytics system with a clear separation between **LLM-based language understanding** and **deterministic data computation**.
+Final documentation screenshots are stored in:
 
-It combines practical AI engineering techniques—structured LLM outputs, validation, explainable anomaly detection, local semantic retrieval, API design, testing, and a lightweight UI—while keeping the implementation aligned with the assessment's Python-only and zero-cost requirements.
+```text
+screenshots/
+```
 
-The architecture is intentionally focused: the four required capabilities are implemented first, with semantic retrieval added as a targeted AI differentiator rather than introducing unnecessary infrastructure or unfinished features.
+Recommended evidence:
+
+- Manager dashboard
+- All Tickets with filters
+- Student ticket creation
+- Student My Tickets
+- Student Ticket Detail
+- Staff Ticket Management
+- Similar Ticket Search with results
+- Natural Language Analytics with a successful result
+
+These screenshots are intended to demonstrate the product workflow rather than document development/debugging states.
+
+---
+
+## 24. Engineering Decisions
+
+### Deterministic business logic for critical operations
+
+SLA calculations, ticket state handling, ownership checks, and operational metrics are handled by application logic rather than relying on LLM decisions.
+
+### Controlled LLM usage
+
+The LLM is used for interpretation and assistance, not as an unrestricted execution engine.
+
+### Validated Query Plans
+
+Natural-language analytics are converted into a constrained, validated structure before deterministic execution.
+
+### Human-in-the-loop AI
+
+AI classification and response generation are suggestions. Staff can review and override them.
+
+### Semantic retrieval
+
+Similar-ticket search uses embeddings to improve discovery of previously resolved cases.
+
+### Scope discipline
+
+The assessment version intentionally prioritizes the Student Support & Ticket Management problem instead of expanding into unrelated infrastructure.
+
+---
+
+## 25. Trade-offs
+
+### Streamlit instead of a separate frontend framework
+
+Streamlit keeps the prototype fast to run and reduces deployment/maintenance complexity for an assessment-focused build.
+
+### SQLite for the assessment prototype
+
+SQLite provides a simple, portable local persistence layer and is sufficient for the demo environment.
+
+A production deployment would typically move to a managed relational database with stronger multi-user operational requirements.
+
+### Simulated authentication
+
+The current version uses role/user selection in the Streamlit UI rather than a full authentication provider.
+
+A production implementation should use proper authentication and identity management such as OAuth/JWT.
+
+### Read-time SLA evaluation
+
+SLA state is calculated dynamically when ticket information is retrieved.
+
+A production system could add scheduled background processing for proactive notifications and escalation events.
+
+---
+
+## 26. Known Limitations
+
+This assessment build intentionally has a limited scope.
+
+1. **Authentication**
+   - Active user identity is simulated through the Streamlit role/user controls.
+   - A production deployment should add OAuth/JWT or an equivalent identity system.
+
+2. **Background notifications**
+   - There is no background cron/job system that sends a notification exactly when an SLA crosses from `AT_RISK` to `BREACHED`.
+   - SLA state is evaluated dynamically at read time.
+
+3. **Local persistence**
+   - SQLite is used for the assessment/demo environment.
+   - A production system would normally use a managed multi-user database.
+
+These limitations are deliberate scope trade-offs and do not remove the core assessment workflow.
+
+---
+
+## 27. AI Usage Transparency
+
+AI-assisted development was used during implementation.
+
+The project includes:
+
+```text
+AI_USAGE_REPORT.md
+```
+
+That document records how AI tools were used, what they contributed, what was reviewed/modified, and how the resulting implementation was validated.
+
+The application itself also keeps AI behavior constrained through:
+
+- structured outputs
+- validation
+- deterministic business rules
+- human review for generated responses
+- explicit fallback behavior
+
+---
+
+## 28. Project Quality Principles
+
+EduSupport AI follows these principles:
+
+```text
+Correctness before complexity
+Deterministic rules before LLM decisions
+Validation before execution
+Human review before external communication
+Clear ownership for every ticket
+Observable ticket history
+Graceful failure instead of fabricated results
+Focused scope instead of unnecessary infrastructure
+```
+
+---
+
+## 29. What This Project Demonstrates
+
+EduSupport AI demonstrates practical product-engineering capabilities across:
+
+- Python backend development
+- FastAPI API design
+- Streamlit product UI
+- data modeling and persistence
+- service-oriented business logic
+- SLA and workflow engines
+- role-based access behavior
+- analytics and deterministic computation
+- natural-language interfaces
+- structured LLM integration
+- semantic search
+- human-in-the-loop AI
+- validation and edge-case handling
+- automated testing
+- documentation and engineering trade-offs
+
+---
+
+## 30. Assessment Scope
+
+This project was developed as a focused solution for a Student Support & Ticket Management problem.
+
+The implementation prioritizes:
+
+```text
+Ticket Lifecycle
+      +
+Assignment / Ownership
+      +
+SLA / Ageing
+      +
+Resolution / Activity History
+      +
+Escalation / Pending
+      +
+Management Visibility
+      +
+AI Assistance
+```
+
+The system is intentionally kept focused on those outcomes rather than adding infrastructure that does not materially improve the assessment use case.
+
+---
+
+## License
+
+This project is an assessment/prototype project. Add the repository-specific license here if a formal open-source license is desired.

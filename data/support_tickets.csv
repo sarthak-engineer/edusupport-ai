@@ -1,4 +1,4 @@
-ticket_id,created_at,category,priority,status,response_time_hrs,resolution_time_hrs,agent_id,customer_rating,issue_summary
+    ticket_id,created_at,category,priority,status,response_time_hrs,resolution_time_hrs,agent_id,customer_rating,issue_summary
 TKT-001,2024-02-05 11:14,General,Low,Resolved,3.7,7.8,AGT-03,4,Request for product documentation
 TKT-002,2024-03-05 17:01,Billing,Low,Resolved,1.2,13.7,AGT-09,4,Incorrect charge on invoice
 TKT-003,2024-02-13 12:09,Billing,High,Resolved,4.8,2.1,AGT-04,5,Unexpected fee on account
